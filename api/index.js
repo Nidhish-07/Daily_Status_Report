@@ -2,6 +2,8 @@ import express from "express"
 import dotenv from "dotenv"
 dotenv.config()
 import mongoose from "mongoose"
+import cookieParser from "cookie-parser"
+import authRoute from "./routes/auth.js"
 
 const app = express()
 
@@ -10,6 +12,8 @@ mongoose.connect(process.env.MONGODB_URI).then(() => {
 }).catch(err => console.log(err))
 
 app.use(express.json())
+app.use(cookieParser())
+app.use("/api/auth", authRoute)
 
 app.use((err, req, res, next) => {
     const status = err.status || 500
