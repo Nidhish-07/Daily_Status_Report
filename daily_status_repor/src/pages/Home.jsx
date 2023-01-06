@@ -3,7 +3,7 @@ import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import { uid } from "uid";
-import { set, ref, onValue, remove } from "firebase/database";
+import { set, ref, onValue, remove, update } from "firebase/database";
 
 const Home = () => {
     //For navigation
@@ -15,9 +15,11 @@ const Home = () => {
         endDate: "",
         managerName: "",
         managerEmail: "",
+        dailyStatus: ""
     });
-    const [dailyStatus, setDailyStatus] = React.useState("");
+    // const [dailyStatus, setDailyStatus] = React.useState("");
     const [projects, setProjects] = React.useState([]);
+    const [isEdit, setIsEdit] = React.useState(false);
 
     //This hook is used so that user can go to the home page without signing out
     React.useEffect(() => {
@@ -60,7 +62,7 @@ const Home = () => {
             "End Date": projectInfo.endDate,
             "Manager Name": projectInfo.managerName,
             "Manager Email": projectInfo.managerEmail,
-            Status: dailyStatus,
+            Status: projectInfo.dailyStatus,
         });
 
         setProjectInfo({
@@ -69,8 +71,8 @@ const Home = () => {
             endDate: "",
             managerName: "",
             managerEmail: "",
+            dailyStatus: ""
         });
-        setDailyStatus("");
     };
 
     //Delete project
@@ -78,6 +80,31 @@ const Home = () => {
         event.preventDefault()
 
         remove(ref(db, `/${auth.currentUser.uid}/${uidd}`))
+    }
+
+    //update Project
+
+    let tempUidd;
+    const updateHandler = (event, project) => {
+        event.preventDefault()
+
+        setIsEdit(true)
+        setProjectInfo(project.project)
+
+        tempUidd = project.uidd
+
+    }
+    const updateConfirmHandler = () => {
+        update(ref(db, `/${auth.currentUser.uid}/${tempUidd}`), {
+            name: projectInfo.name,
+            startDate: projectInfo.startDate,
+            endDate: projectInfo.endDate,
+            managerName: projectInfo.managerName,
+            managerEmail: projectInfo.managerEmail,
+            dailyStatus: projectInfo.dailyStatus,
+            tempUidd:tempUidd
+        })
+
     }
     return (
         <div>
@@ -125,17 +152,19 @@ const Home = () => {
                 <textarea
                     name=""
                     id=""
-                    value={dailyStatus}
-                    onChange={(event) => setDailyStatus(event.target.value)}
+                    value={projectInfo.dailyStatus}
+                    onChange={(event) => setProjectInfo({ ...projectInfo, dailyStatus: event.target.value })}
                 ></textarea>
                 {projects.map((project) => (
                     <div>
                         <h1>{project.Name}</h1>
-                        <button>Update</button>
+                        <button onClick={(event) => updateHandler(event, project)}>Update</button>
                         <button onClick={(event) => deleteHandler(event, project.uidd)}>Delete</button>
                     </div>
                 ))}
-                <button onClick={projectAddHandler}>Add</button>
+                {isEdit ? (
+                    <button onClick={updateConfirmHandler}>Confirm</button>) : (
+                    <button onClick={projectAddHandler}>Add</button>)}
             </form>
 
             <button onClick={signOutHandler}>Sign Out</button>
