@@ -3,6 +3,7 @@ import Landing from './pages/Landing'
 import { RouterProvider, createBrowserRouter, Route } from "react-router-dom"
 import Home from './pages/Home'
 
+//Crete a router for navigation
 const router = createBrowserRouter([{
   path: "/",
   element: <Landing></Landing>,
